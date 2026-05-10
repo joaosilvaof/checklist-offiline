@@ -9,7 +9,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=web"
-      - "traefik.http.routers.checklist-offline.rule=Host(`${CHECKLIST_DOMAIN}`)"
+      - "traefik.http.routers.checklist-offline.rule=Host(`checklist.cmwtransportes.org`)"
       - "traefik.http.routers.checklist-offline.entrypoints=websecure"
       - "traefik.http.routers.checklist-offline.tls=true"
       - "traefik.http.routers.checklist-offline.tls.certresolver=letsencrypt"
