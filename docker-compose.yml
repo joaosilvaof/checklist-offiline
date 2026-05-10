@@ -4,6 +4,14 @@ services:
     image: checklist-offline:latest
     container_name: checklist-offline
     restart: unless-stopped
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     environment:
       API_BASE: ${API_BASE}
       TOKEN_APP: ${TOKEN_APP}
