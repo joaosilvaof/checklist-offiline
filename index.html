@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CMW Transportes - Checklist Veicular</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0d2257">
+
+  <style>
+
+    :root{
+      --azul:#0d2257;
+      --vermelho:#c8181e;
+      --cinza:#f4f6fb;
+      --borda:#d9e0ef;
+      --texto:#4f5b78;
+      --sucesso:#0d7a4d;
+      --alerta:#8f6200;
+    }
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      font-family:Arial,Helvetica,sans-serif;
+      background:#fff;
+      color:var(--azul);
+    }
+
+    .top{
+      background:var(--azul);
+      padding:18px;
+      text-align:center;
+    }
+
+    .top img{
+      height:42px;
+    }
+
+    .container{
+      max-width:720px;
+      margin:30px auto;
+      padding:0 16px;
+    }
+
+    .card{
+      border:1px solid var(--borda);
+      border-radius:12px;
+      padding:24px;
+      margin-bottom:20px;
+    }
+
+    h1{
+      font-size:24px;
+      margin-bottom:8px;
+    }
+
+    .sub{
+      color:var(--texto);
+      font-size:14px;
+      margin-bottom:20px;
+      line-height:1.5;
+    }
+
+    .status{
+      display:inline-block;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:bold;
+      margin-bottom:14px;
+    }
+
+    .online{
+      background:#e8f7f0;
+      color:var(--sucesso);
+    }
+
+    .offline{
+      background:#fff5da;
+      color:var(--alerta);
+    }
+
+    .device{
+      font-size:12px;
+      color:var(--texto);
+      margin-bottom:18px;
+      line-height:1.5;
+      word-break:break-all;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+    }
+
+    .full{
+      grid-column:1 / -1;
+    }
+
+    label{
+      display:block;
+      font-size:14px;
+      font-weight:700;
+      margin-bottom:6px;
+    }
+
+    .req{
+      color:var(--vermelho);
+    }
+
+    input,
+    select,
+    textarea{
+      width:100%;
+      border:1px solid var(--borda);
+      background:var(--cinza);
+      border-radius:8px;
+      padding:12px;
+      font-size:14px;
+      outline:none;
+    }
+
+    textarea{
+      min-height:90px;
+      resize:vertical;
+    }
+
+    .check-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .check-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background:var(--cinza);
+      border:1px solid var(--borda);
+      border-radius:8px;
+      padding:14px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:14px;
+      user-select:none;
+    }
+
+    .check-item input{
+      width:20px;
+      height:20px;
+      accent-color:var(--azul);
+      flex:0 0 auto;
+    }
+
+    .check-item.problema{
+      background:#fff6f7;
+      border-color:#ffc9cf;
+      color:var(--vermelho);
+    }
+
+    button{
+      width:100%;
+      border:none;
+      border-radius:8px;
+      padding:14px;
+      background:var(--vermelho);
+      color:#fff;
+      font-size:15px;
+      font-weight:bold;
+      cursor:pointer;
+      text-transform:uppercase;
+    }
+
+    button:disabled{
+      opacity:0.7;
+      cursor:not-allowed;
+    }
+
+    .secondary{
+      margin-top:10px;
+      background:#fff;
+      border:1px solid var(--borda);
+      color:var(--azul);
+      display:none;
+    }
+
+    .danger-box{
+      display:none;
+      border:1px solid #ffd0d5;
+      background:#fff6f7;
+      border-radius:8px;
+      padding:14px;
+    }
+
+    .img-container{
+      margin-top:15px;
+      border:2px dashed var(--borda);
+      border-radius:8px;
+      padding:20px;
+      text-align:center;
+      background:var(--cinza);
+      cursor:pointer;
+      transition:all 0.3s;
+    }
+
+    .img-container:hover{
+      border-color:var(--azul);
+      background:#f0f3ff;
+    }
+
+    .img-container input{
+      display:none;
+    }
+
+    .img-preview{
+      max-width:100%;
+      max-height:200px;
+      margin-top:10px;
+      border-radius:4px;
+      display:none;
+    }
+
+    .img-container i{
+      display:block;
+      font-size:24px;
+      margin-bottom:8px;
+    }
+
+    .btn-remove-photo{
+      display:none;
+      background:#fff;
+      color:var(--vermelho);
+      border:1px solid var(--vermelho);
+      padding:5px 10px;
+      font-size:12px;
+      margin-top:10px;
+      width:auto;
+      text-transform:none;
+    }
+
+    /* Tela de Login - baseada em login-referencia.html, sem Cloudflare */
+    .login-container{
+      display:none;
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      background:#fff;
+      z-index:9999;
+      flex-direction:column;
+      align-items:center;
+      overflow:auto;
+    }
+
+    .login-top-bar{
+      width:100%;
+      background-color:var(--azul);
+      padding:16px 20px;
+      display:flex;
+      justify-content:center;
+      box-shadow:0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .login-top-bar img{
+      max-height:40px;
+      display:block;
+    }
+
+    .login-main-content{
+      padding:40px 16px;
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+
+    .login-card{
+      width:100%;
+      max-width:380px;
+      background:#fff;
+      border:1.5px solid var(--borda);
+      border-radius:12px;
+      padding:28px 24px;
+      box-shadow:none;
+    }
+
+    .login-title{
+      font-size:24px;
+      font-weight:700;
+      color:var(--azul);
+      margin:0 0 20px 0;
+      letter-spacing:-0.5px;
+    }
+
+    .login-field{
+      margin-bottom:16px;
+    }
+
+    .login-card input{
+      padding:12px 14px;
+      border:1.5px solid var(--borda);
+      border-radius:8px;
+      font-size:15px;
+      color:var(--azul);
+      background:var(--cinza);
+      transition:all 0.2s;
+    }
+
+    .login-card button{
+      padding:13px;
+      font-size:16px;
+      margin-top:8px;
+    }
+
+    .error-msg{
+      color:var(--vermelho);
+      font-size:12px;
+      margin-top:5px;
+      display:none;
+    }
+
+    .success-msg{
+      color:var(--sucesso);
+      font-size:12px;
+      margin-top:5px;
+      display:none;
+    }
+
+    /* Contador de pendências */
+    .pendente-badge{
+      position:fixed;
+      top:10px;
+      right:10px;
+      background:var(--vermelho);
+      color:#fff;
+      border-radius:50%;
+      width:24px;
+      height:24px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      font-weight:bold;
+      z-index:100;
+      display:none;
+    }
+
+    /* Loading */
+    .loading-overlay{
+      display:none;
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(255,255,255,0.9);
+      z-index:9998;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+    }
+
+    .spinner{
+      width:40px;
+      height:40px;
+      border:4px solid var(--borda);
+      border-top-color:var(--azul);
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+      margin-bottom:10px;
+    }
+
+    @keyframes spin{
+      to{transform:rotate(360deg);}
+    }
+
+    /* Progresso de compressão */
+    .progress-bar{
+      width:100%;
+      height:6px;
+      background:var(--borda);
+      border-radius:3px;
+      margin-top:10px;
+      overflow:hidden;
+      display:none;
+    }
+
+    .progress-fill{
+      height:100%;
+      background:var(--azul);
+      width:0%;
+      transition:width 0.3s;
+    }
+
+    /* Logs (apenas debug) */
+    #debugPanel{
+      display:none;
+      position:fixed;
+      bottom:0;
+      left:0;
+      right:0;
+      background:#333;
+      color:#0f0;
+      font-family:monospace;
+      font-size:11px;
+      max-height:200px;
+      overflow:auto;
+      padding:10px;
+      z-index:10000;
+    }
+
+    #debugPanel.visible{
+      display:block;
+    }
+
+    #debugToggle{
+      position:fixed;
+      bottom:10px;
+      right:10px;
+      background:#333;
+      color:#fff;
+      border:none;
+      border-radius:50%;
+      width:40px;
+      height:40px;
+      cursor:pointer;
+      z-index:10001;
+      font-size:18px;
+    }
+
+    @media(max-width:600px){
+      .grid, .check-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- Painel de Debug (escondido por padrão) -->
+<button id="debugToggle" title="Toggle Debug">⚙️</button>
+<div id="debugPanel"></div>
+
+<!-- Badge de pendências -->
+<div id="pendenteBadge" class="pendente-badge">0</div>
+
+<!-- Tela de Login -->
+<div class="login-container" id="loginScreen">
+  <div class="login-top-bar">
+    <img src="https://static.wixstatic.com/media/a3f80f_20de4807aaad498983ad218c6c56bdd1~mv2.png/v1/fill/w_128,h_44,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/LOGO%202.png" alt="CMW">
+  </div>
+  <div class="login-main-content">
+    <div class="login-card">
+      <h1 class="login-title">Acesso ao Checklist</h1>
+      <form id="loginForm">
+        <div class="login-field">
+          <label>Matrícula</label>
+          <input type="text" name="matricula" id="matricula" placeholder="Digite sua matrícula" required autocomplete="username">
+          <div class="error-msg" id="matriculaError"></div>
+        </div>
+        <div class="login-field">
+          <label>PIN</label>
+          <input type="password" name="pin" id="pin" placeholder="Digite seu PIN" required autocomplete="current-password" inputmode="numeric">
+          <div class="error-msg" id="pinError"></div>
+        </div>
+        <button type="submit" id="btnLogin">Entrar</button>
+        <div class="success-msg" id="loginSuccess"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div id="loadingText">Processando...</div>
+</div>
+
+<!-- Conteúdo Principal -->
+<div class="top">
+  <img src="https://static.wixstatic.com/media/a3f80f_20de4807aaad498983ad218c6c56bdd1~mv2.png/v1/fill/w_128,h_44,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/LOGO%202.png" alt="CMW">
+</div>
+
+<div class="container" id="mainContent" style="display:none;">
+
+  <div class="card">
+
+    <h1>Checklist veicular</h1>
+
+    <div class="sub">
+      Checklist offline para ônibus, micro e vans da CMW Transportes.
+    </div>
+
+    <div id="netStatus" class="status offline">
+      Verificando...
+    </div>
+
+    <div id="deviceInfo" class="device"></div>
+
+    <!-- Info do motorista logado -->
+    <div id="motoristaInfo" class="card" style="background:#e8f7f0; border-color:#0d7a4d; margin-bottom:20px; display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong id="motoristaNome"></strong><br>
+          <small id="motoristaMatricula"></small>
+        </div>
+        <button onclick="logout()" style="width:auto; padding:8px 16px; font-size:12px; background:#0d7a4d;">Sair</button>
+      </div>
+    </div>
+
+    <form id="frm">
+
+      <div class="grid">
+
+        <div>
+          <label>Tipo de veículo <span class="req">*</span></label>
+          <select name="tipo_veiculo" required>
+            <option value="">Selecione</option>
+            <option>Ônibus</option>
+            <option>Micro</option>
+            <option>Van</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Unidade <span class="req">*</span></label>
+          <select name="unidade" required>
+            <option value="">Selecione</option>
+            <option>Extrema</option>
+            <option>Bragança</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Prefixo <span class="req">*</span></label>
+          <input type="text" name="prefixo" required>
+        </div>
+
+        <div>
+          <label>Placa <span class="req">*</span></label>
+          <input type="text" name="placa" required>
+        </div>
+
+        <div>
+          <label>KM atual <span class="req">*</span></label>
+          <input type="number" name="km" required>
+        </div>
+
+        <div>
+          <label>Condutor/Vistoriador <span class="req">*</span></label>
+          <input type="text" name="condutor_nome" required>
+        </div>
+
+        <div class="full">
+          <label>Itens de segurança</label>
+          <div class="check-grid">
+            <label class="check-item">
+              <input type="checkbox" name="cinto_motorista_ok" checked>
+              Cinto motorista OK
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="cintos_passageiros_ok" checked>
+              Cintos passageiros OK
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="freio_ok" checked>
+              Freio OK
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="pneus_ok" checked>
+              Pneus OK
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="farol_lanterna_seta_ok" checked>
+              Farol/Lanterna/Seta OK
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="porta_ok" checked>
+              Porta OK
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="extintor_ok" checked>
+              Extintor OK
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="saida_emergencia_ok" checked>
+              Saída emergência OK
+            </label>
+          </div>
+        </div>
+
+        <div class="full danger-box" id="boxProblema">
+          <label>Detalhe do problema <span class="req">*</span></label>
+          <textarea id="problemaDetalhe" name="problema_cinto_detalhe" placeholder="Ex: Poltrona 14 - cinto não trava."></textarea>
+        </div>
+
+        <div class="full">
+          <label>Observações</label>
+          <textarea name="observacoes"></textarea>
+        </div>
+
+        <div class="full">
+          <label>Foto do Veículo / Problema (Opcional)</label>
+          <div class="img-container" onclick="document.getElementById('fotoInput').click()">
+            <span id="imgPlaceholder">📸 Clique para tirar ou selecionar foto</span>
+            <input type="file" id="fotoInput" accept="image/*" capture="environment">
+            <img id="imgPreview" class="img-preview">
+            <button type="button" id="btnRemovePhoto" class="btn-remove-photo" onclick="removerFoto(event)">Remover Foto</button>
+          </div>
+          <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <small id="imgInfo" style="display:none; color:var(--texto);"></small>
+        </div>
+
+        <div class="full">
+          <button type="submit" id="btnSalvar">Salvar checklist</button>
+          <button type="button" class="secondary" id="btnSync">
+            Sincronizar pendentes
+          </button>
+        </div>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+<script>
+
+// ==================== CONFIGURAÇÕES ====================
+const CONFIG = {
+  // Produção n8n: informe a URL base dos webhooks, ex.: 'https://n8n.seudominio.com/webhook'
+  // Se houver proxy no mesmo domínio do PWA, mantenha window.location.origin.
+  API_BASE: localStorage.getItem('cmw_api_base') || window.location.origin,
+  TOKEN_APP: 'cmw_chk_2026_9Kf3XwP2mQa8LdR7VnT4HsYc',
+  DB_NAME: 'cmw_checklist_v2',
+  STORE_PENDENTES: 'pendentes',
+  STORE_SESSAO: 'sessao',
+  MAX_IMAGE_WIDTH: 1024,
+  IMAGE_QUALITY: 0.7,
+  MAX_IMAGE_UPLOAD_MB: 1.5,
+  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
+  BATCH_SIZE: 3, // Menor para conexões instáveis e uploads com foto
+  RETER_ENVIADOS_DIAS: 15,
+  DEBUG: false // Ative temporariamente pelo painel/debug se necessário
+};
+
+// ==================== LOGS ====================
+function debugLog(...args) {
+  if (CONFIG.DEBUG) {
+    const panel = document.getElementById('debugPanel');
+    const timestamp = new Date().toLocaleTimeString();
+    const logMsg = `[${timestamp}] ${args.join(' ')}\n`;
+    panel.textContent += logMsg;
+    panel.scrollTop = panel.scrollHeight;
+    console.log(...args);
+  }
+}
+
+// ==================== UTILITÁRIOS ====================
+function generateDeviceId() {
+  let id = localStorage.getItem('cmw_device');
+  if (!id) {
+    id = 'DEVICE-' + crypto.randomUUID();
+    localStorage.setItem('cmw_device', id);
+    debugLog('Novo device ID gerado:', id);
+  }
+  return id;
+}
+
+function showLoading(text = 'Processando...') {
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').style.display = 'none';
+}
+
+function showError(elementId, message) {
+  const el = document.getElementById(elementId);
+  el.textContent = message;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+function showSuccess(elementId, message) {
+  const el = document.getElementById(elementId);
+  el.textContent = message;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+// ==================== COMPRESSÃO DE IMAGEM ====================
+async function comprimirImagem(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress = Math.min(progress + 10, 90);
+      if (onProgress) onProgress(progress);
+    }, 100);
+
+    // Limite de tamanho para imagens (evita crash em dispositivos fracos)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    if (file.size > MAX_FILE_SIZE) {
+      clearInterval(progressInterval);
+      reject(new Error('Imagem muito grande. Limite: 50MB'));
+      return;
+    }
+
+    reader.readAsDataURL(file);
+    reader.onload = event => {
+      const img = new Image();
+      img.onload = () => {
+        clearInterval(progressInterval);
+        if (onProgress) onProgress(100);
+
+        // Calcula escala mantendo aspect ratio
+        let scale = Math.min(1, CONFIG.MAX_IMAGE_WIDTH / img.width);
+        
+        // Se a imagem for muito alta (fotos verticais), redimensiona proporcionalmente
+        if (img.height > img.width && img.height > CONFIG.MAX_IMAGE_WIDTH) {
+          scale = Math.min(scale, CONFIG.MAX_IMAGE_WIDTH / img.height);
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', CONFIG.IMAGE_QUALITY);
+        resolve(dataUrl);
+      };
+      img.onerror = () => {
+        clearInterval(progressInterval);
+        reject(new Error('Erro ao processar imagem'));
+      };
+      img.src = event.target.result;
+    };
+    reader.onerror = () => {
+      clearInterval(progressInterval);
+      reject(new Error('Erro ao ler arquivo'));
+    };
+  });
+}
+
+// ==================== INDEXEDDB ====================
+async function openDB(storeName) {
+  return new Promise((resolve, reject) => {
+    const dbName = storeName === CONFIG.STORE_SESSAO ? CONFIG.DB_NAME + '_sessao' : CONFIG.DB_NAME;
+    const version = storeName === CONFIG.STORE_SESSAO ? 1 : 2;
+
+    const req = indexedDB.open(dbName, version);
+
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(storeName)) {
+        db.createObjectStore(storeName, { keyPath: 'id' });
+      }
+      // Migração da v1 para v2
+      if (storeName === CONFIG.STORE_PENDENTES && !db.objectStoreNames.contains('pendentes_v2')) {
+        debugLog('Migrando IndexedDB para versão 2...');
+      }
+    };
+
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveSessao(sessao) {
+  const db = await openDB(CONFIG.STORE_SESSAO);
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(CONFIG.STORE_SESSAO, 'readwrite');
+    tx.objectStore(CONFIG.STORE_SESSAO).put({
+      id: 'sessao_atual',
+      ...sessao,
+      criado_em: new Date().toISOString()
+    });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function getSessao() {
+  try {
+    const db = await openDB(CONFIG.STORE_SESSAO);
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(CONFIG.STORE_SESSAO, 'readonly');
+      const req = tx.objectStore(CONFIG.STORE_SESSAO).get('sessao_atual');
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+async function clearSessao() {
+  try {
+    const db = await openDB(CONFIG.STORE_SESSAO);
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(CONFIG.STORE_SESSAO, 'readwrite');
+      tx.objectStore(CONFIG.STORE_SESSAO).delete('sessao_atual');
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (e) {
+    console.error('Erro ao limpar sessão:', e);
+  }
+}
+
+async function listarPendentes() {
+  const db = await openDB(CONFIG.STORE_PENDENTES);
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(CONFIG.STORE_PENDENTES, 'readonly');
+    const req = tx.objectStore(CONFIG.STORE_PENDENTES).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveOffline(payload) {
+  debugLog('[Offline] Salvando checklist:', payload.protocolo || 'sem-protocolo');
+
+  const db = await openDB(CONFIG.STORE_PENDENTES);
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(CONFIG.STORE_PENDENTES, 'readwrite');
+    tx.objectStore(CONFIG.STORE_PENDENTES).add({
+      id: crypto.randomUUID(),
+      enviado: false,
+      criado_em: new Date().toISOString(),
+      payload
+    });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function marcarEnviado(item) {
+  const db = await openDB(CONFIG.STORE_PENDENTES);
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(CONFIG.STORE_PENDENTES, 'readwrite');
+    item.enviado = true;
+    item.enviado_em = new Date().toISOString();
+    tx.objectStore(CONFIG.STORE_PENDENTES).put(item);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function limparEnviadosAntigos() {
+  const db = await openDB(CONFIG.STORE_PENDENTES);
+  const limite = Date.now() - (CONFIG.RETER_ENVIADOS_DIAS * 24 * 60 * 60 * 1000);
+  const itens = await listarPendentes();
+  const antigos = itens.filter(item => item.enviado && item.enviado_em && new Date(item.enviado_em).getTime() < limite);
+
+  if (antigos.length === 0) return 0;
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(CONFIG.STORE_PENDENTES, 'readwrite');
+    const store = tx.objectStore(CONFIG.STORE_PENDENTES);
+    antigos.forEach(item => store.delete(item.id));
+    tx.oncomplete = () => resolve(antigos.length);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function atualizarContadorPendencias() {
+  const itens = await listarPendentes();
+  const pendentes = itens.filter(x => !x.enviado);
+  const badge = document.getElementById('pendenteBadge');
+
+  if (pendentes.length > 0) {
+    badge.textContent = pendentes.length;
+    badge.style.display = 'flex';
+    document.getElementById('btnSync').innerHTML = `Sincronizar pendentes (${pendentes.length})`;
+    document.getElementById('btnSync').style.display = 'block';
+  } else {
+    badge.style.display = 'none';
+    document.getElementById('btnSync').style.display = 'none';
+  }
+
+  return pendentes.length;
+}
+
+// ==================== AUTENTICAÇÃO ====================
+async function login(matricula, pin) {
+  showLoading('Validando credenciais...');
+
+  try {
+    const response = await fetch(`${CONFIG.API_BASE}/checklist-validar-motorista`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token_app: CONFIG.TOKEN_APP,
+        matricula,
+        pin,
+        device_id: generateDeviceId()
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.autorizado) {
+      const sessao = {
+        motorista_id: data.motorista_id,
+        motorista_matricula: data.motorista_matricula,
+        motorista_nome: data.motorista_nome,
+        unidade: data.unidade,
+        device_id: generateDeviceId(),
+        tipo_acesso: data.tipo_acesso || 'movel',
+        exige_dispositivo_autorizado: data.exige_dispositivo_autorizado === true,
+        dispositivo_autorizado: data.dispositivo_autorizado === true,
+        nome_dispositivo: data.nome_dispositivo || 'Dispositivo móvel não cadastrado',
+        validado_em: data.validado_em,
+        valido_ate: data.valido_offline_ate
+      };
+
+      await saveSessao(sessao);
+      showSuccess('loginSuccess', 'Login realizado com sucesso!');
+
+      setTimeout(() => {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        inicializarApp(sessao);
+      }, 1000);
+
+      return true;
+    } else {
+      showError('pinError', data.erro || 'Credenciais inválidas');
+      hideLoading();
+      return false;
+    }
+  } catch (error) {
+    debugLog('Erro no login:', error);
+    showError('pinError', 'Erro de conexão. Tente novamente.');
+    hideLoading();
+    return false;
+  }
+}
+
+function logout() {
+  if (confirm('Deseja realmente saar?')) {
+    clearSessao();
+    location.reload();
+  }
+}
+
+async function verificarSessao() {
+  const sessao = await getSessao();
+
+  if (sessao && sessao.motorista_id) {
+    // Verificar se sessão ainda é válida
+    const validoAte = new Date(sessao.valido_ate);
+    if (new Date() < validoAte) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      inicializarApp(sessao);
+      return;
+    } else {
+      await clearSessao();
+    }
+  }
+
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('mainContent').style.display = 'none';
+}
+
+async function inicializarApp(sessao) {
+  // Preencher info do motorista
+  document.getElementById('motoristaNome').textContent = sessao.motorista_nome;
+  document.getElementById('motoristaMatricula').textContent = sessao.motorista_matricula;
+  document.getElementById('motoristaInfo').style.display = 'block';
+
+  // Pré-selecionar unidade do tablet
+  const selectUnidade = document.querySelector('select[name="unidade"]');
+  if (selectUnidade && sessao.unidade) {
+    selectUnidade.value = sessao.unidade;
+  }
+
+  // Usuários de garagem exigem dispositivo autorizado; usuários móveis usam apenas matrícula/PIN.
+  let dispositivoOk = true;
+  if (sessao.exige_dispositivo_autorizado && navigator.onLine) {
+    dispositivoOk = await validarDispositivoRemoto();
+  }
+
+  if (!dispositivoOk) {
+    alert('Este usuário exige dispositivo autorizado. Use o aparelho da garagem ou contate o gestor.');
+    await clearSessao();
+    location.reload();
+    return;
+  }
+
+  // Inicializar outros componentes
+  statusOnline();
+  atualizarItensProblema();
+  await atualizarContadorPendencias();
+
+  debugLog('App inicializado para:', sessao.motorista_nome);
+}
+
+// ==================== VALIDAÇÃO DE DISPOSITIVO ====================
+async function validarDispositivoRemoto() {
+  const deviceId = generateDeviceId();
+
+  try {
+    const response = await fetch(`${CONFIG.API_BASE}/checklist-validar-dispositivo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token_app: CONFIG.TOKEN_APP,
+        device_id: deviceId
+      })
+    });
+
+    const data = await response.json();
+    debugLog('Validação dispositivo:', data);
+
+    if (!data.autorizado) {
+      console.warn('Dispositivo não autorizado:', deviceId);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    debugLog('Erro ao validar dispositivo (mantendo acesso offline com sessão válida):', error);
+    return true;
+  }
+}
+
+// ==================== UTILITÁRIOS DE REDE ====================
+async function checkRealConnectivity() {
+  if (!navigator.onLine) return false;
+  
+  try {
+    // Tenta pingar um endpoint leve (ou usar a própria API)
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    
+    const response = await fetch(`${CONFIG.API_BASE}/checklist-validar-dispositivo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token_app: CONFIG.TOKEN_APP,
+        device_id: generateDeviceId(),
+        ping: true
+      }),
+      signal: controller.signal,
+      cache: 'no-store'
+    });
+    
+    clearTimeout(timeout);
+    return response.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ==================== SINCRONIZAÇÃO EM BATCH ====================
+async function sincronizar({ silencioso = false } = {}) {
+  // Verifica conectividade real (não só estado do browser)
+  const isReallyOnline = await checkRealConnectivity();
+  if (!isReallyOnline) {
+    if (!silencioso) alert('Sem internet. Conecte-se à rede para sincronizar.');
+    return;
+  }
+
+  const sessao = await getSessao();
+  if (!sessao) {
+    if (!silencioso) alert('Sessão expirada. Faça login novamente.');
+    await verificarSessao();
+    return;
+  }
+
+  await limparEnviadosAntigos();
+
+  const itens = await listarPendentes();
+  const pendentes = itens.filter(x => !x.enviado);
+
+  if (pendentes.length === 0) {
+    if (!silencioso) alert('Nenhum checklist pendente.');
+    return;
+  }
+
+  // Ordena por data (mais antigos primeiro)
+  pendentes.sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em));
+
+  if (!silencioso) showLoading(`Sincronizando ${pendentes.length} checklist(s)...`);
+
+  let enviados = 0;
+  let falhas = 0;
+
+  for (let i = 0; i < pendentes.length; i += CONFIG.BATCH_SIZE) {
+    const batch = pendentes.slice(i, i + CONFIG.BATCH_SIZE);
+
+    await Promise.all(
+      batch.map(async (item) => {
+        try {
+          const response = await fetch(`${CONFIG.API_BASE}/checklist-veicular`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item.payload)
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.aceito) {
+            await marcarEnviado(item);
+            enviados++;
+          } else {
+            falhas++;
+            debugLog('Falha ao enviar:', item.payload.protocolo || 'sem-protocolo', data);
+          }
+        } catch (e) {
+          falhas++;
+          debugLog('Erro:', e);
+        }
+      })
+    );
+
+    // Delay entre batches e verifica se ainda está online
+    if (i + CONFIG.BATCH_SIZE < pendentes.length) {
+      const stillOnline = await checkRealConnectivity();
+      if (!stillOnline) {
+        debugLog('Conexão perdida durante sincronização. Pausando...');
+        falhas += pendentes.length - (i + CONFIG.BATCH_SIZE);
+        break;
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+  if (!silencioso) hideLoading();
+  await atualizarContadorPendencias();
+  
+  // Feedback apenas na sincronização manual
+  if (!silencioso) {
+    if (falhas === 0) {
+      alert(`✅ Todos os ${enviados} checklist(s) foram sincronizados com sucesso!`);
+    } else if (enviados === 0) {
+      alert(`❌ Nenhum checklist foi enviado. Verifique sua conexão e tente novamente.`);
+    } else {
+      alert(`⚠️ Sincronização parcial:\n✓ Enviados: ${enviados}\n✗ Falhas: ${falhas}\n\nOs itens que falharam permanecem salvos para nova tentativa.`);
+    }
+  } else if (enviados > 0) {
+    debugLog(`[Sync] ${enviados} checklist(s) sincronizado(s) em segundo plano.`);
+  }
+}
+
+
+
+// ==================== UI INTERACTIONS ====================
+function atualizarItensProblema() {
+  const checks = document.querySelectorAll('.check-item input[type="checkbox"]');
+  let temProblema = false;
+
+  checks.forEach(chk => {
+    const label = chk.closest('.check-item');
+    if (chk.checked) {
+      label.classList.remove('problema');
+    } else {
+      label.classList.add('problema');
+      temProblema = true;
+    }
+  });
+
+  const box = document.getElementById('boxProblema');
+  const detalhe = document.getElementById('problemaDetalhe');
+
+  if (temProblema) {
+    box.style.display = 'block';
+    detalhe.required = true;
+  } else {
+    box.style.display = 'none';
+    detalhe.required = false;
+    detalhe.value = '';
+  }
+}
+
+let fotoBase64 = null;
+let fotosInfo = { originalSize: 0, compressedSize: 0 };
+
+document.getElementById('fotoInput').addEventListener('change', async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (!CONFIG.ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    alert('Formato inválido. Use JPG, PNG ou WEBP.');
+    this.value = '';
+    return;
+  }
+
+  const placeholder = document.getElementById('imgPlaceholder');
+  const preview = document.getElementById('imgPreview');
+  const btnRemove = document.getElementById('btnRemovePhoto');
+  const progressBar = document.getElementById('progressBar');
+  const progressFill = document.getElementById('progressFill');
+  const imgInfo = document.getElementById('imgInfo');
+
+  placeholder.innerHTML = '⌛ Comprimindo...';
+  progressBar.style.display = 'block';
+  progressFill.style.width = '0%';
+
+  fotosInfo.originalSize = file.size;
+
+  try {
+    fotoBase64 = await comprimirImagem(file, (progress) => {
+      progressFill.style.width = progress + '%';
+    });
+
+    // Calcular tamanho comprimido (base64: cada 4 chars = 3 bytes)
+    const bytes = (fotoBase64.length * 3) / 4;
+    fotosInfo.compressedSize = Math.round((bytes / 1024 / 1024) * 100) / 100; // MB com 2 casas
+
+    if (fotosInfo.compressedSize > CONFIG.MAX_IMAGE_UPLOAD_MB) {
+      throw new Error(`Imagem comprimida acima de ${CONFIG.MAX_IMAGE_UPLOAD_MB}MB. Tente uma foto mais simples.`);
+    }
+
+    preview.src = fotoBase64;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+    btnRemove.style.display = 'inline-block';
+    progressBar.style.display = 'none';
+
+    imgInfo.innerHTML = `📷 Original: ${(fotosInfo.originalSize/1024/1024).toFixed(1)}MB → Comprimido: ${fotosInfo.compressedSize}MB (${Math.round((1-fotosInfo.compressedSize/(fotosInfo.originalSize/1024/1024))*100)}% menor)`;
+    imgInfo.style.display = 'block';
+
+    debugLog('Imagem comprimida:', {
+      original: `${(fotosInfo.originalSize/1024/1024).toFixed(2)} MB`,
+      comprimida: `${(fotosInfo.compressedSize/1024/1024).toFixed(2)} MB`
+    });
+
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Erro ao processar imagem. Tente novamente.');
+    placeholder.innerHTML = '📸 Clique para tirar ou selecionar foto';
+    progressBar.style.display = 'none';
+  }
+});
+
+function removerFoto(e) {
+  e.stopPropagation();
+  fotoBase64 = null;
+  document.getElementById('fotoInput').value = '';
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('imgPlaceholder').style.display = 'block';
+  document.getElementById('imgPlaceholder').innerHTML = '📸 Clique para tirar ou selecionar foto';
+  document.getElementById('btnRemovePhoto').style.display = 'none';
+  document.getElementById('progressBar').style.display = 'none';
+  document.getElementById('imgInfo').style.display = 'none';
+}
+
+// ==================== MONTAR PAYLOAD ====================
+function montarPayload(form, sessao) {
+  const data = Object.fromEntries(new FormData(form).entries());
+
+  // Checkboxes para Sim/Não
+  const camposCheck = [
+    'cinto_motorista_ok',
+    'cintos_passageiros_ok',
+    'freio_ok',
+    'pneus_ok',
+    'farol_lanterna_seta_ok',
+    'porta_ok',
+    'extintor_ok',
+    'saida_emergencia_ok'
+  ];
+
+  camposCheck.forEach(campo => {
+    const el = form.querySelector(`[name="${campo}"]`);
+    data[campo] = el.checked ? 'Sim' : 'Não';
+  });
+
+  // Adicionar dados da sessão
+  data.motorista_id = sessao.motorista_id;
+  data.motorista_matricula = sessao.motorista_matricula;
+  data.motorista_nome = sessao.motorista_nome;
+
+  // Metadados
+  data.token_app = CONFIG.TOKEN_APP;
+  data.device_id = sessao.device_id;
+  data.tipo_acesso = sessao.tipo_acesso || 'movel';
+  data.exige_dispositivo_autorizado = sessao.exige_dispositivo_autorizado === true;
+  data.dispositivo_autorizado = sessao.dispositivo_autorizado === true;
+  data.nome_dispositivo = sessao.nome_dispositivo || 'Dispositivo móvel não cadastrado';
+  data.protocolo_local = crypto.randomUUID(); // idempotência: evita duplicidade no n8n/Directus
+  data.origem = 'pwa-checklist-cmw-v2';
+  data.criado_em_aparelho = new Date().toISOString();
+  data.online_no_momento = navigator.onLine;
+  data.foto = fotoBase64;
+  data.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  return data;
+}
+
+// ==================== SUBMISSÃO DO FORMULÁRIO ====================
+document.getElementById('frm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const sessao = await getSessao();
+  if (!sessao) {
+    alert('Sessão expirada. Faça login novamente.');
+    await verificarSessao();
+    return;
+  }
+
+  const btn = document.getElementById('btnSalvar');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Salvando...';
+
+  let salvouComSucesso = false;
+
+  try {
+    const payload = montarPayload(this, sessao);
+
+    // Verifica conectividade real (não só estado do browser)
+    const isOnline = await checkRealConnectivity();
+    
+    if (isOnline) {
+      try {
+        showLoading('Enviando checklist...');
+        const response = await fetch(`${CONFIG.API_BASE}/checklist-veicular`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.aceito) {
+          hideLoading();
+          salvouComSucesso = true;
+          alert(`✅ Checklist enviado com sucesso!\n\n📋 Protocolo: ${data.protocolo}\n🚨 Status: ${data.status_operacional || 'Liberado'}`);
+          
+          // Se foi crítico, alerta adicional
+          if (data.prioridade === 'Crítica') {
+            setTimeout(() => {
+              alert('⚠️ AVISO: Checklist com itens críticos!\n\nGestão será notificada automaticamente.');
+            }, 500);
+          }
+        } else if (data.aceito === false) {
+          hideLoading();
+          const erros = data.erros || ['Dados inconsistentes. Verifique o formulário.'];
+          alert('❌ Erro de validação:\n→ ' + erros.join('\n→ '));
+          // Não limpa formulário em erro de validação - mantém dados para correção
+          return;
+        } else {
+          // Erro do servidor (5xx)
+          throw new Error('Erro no servidor: ' + (data.mensagem || 'Resposta inválida'));
+        }
+      } catch (error) {
+        // Falha na rede/tempo esgotado - salva offline
+        debugLog('Erro de rede ao enviar:', error);
+        await saveOffline(payload);
+        hideLoading();
+        salvouComSucesso = true; // Salvou offline, então pode limpar
+        alert('⚠️ Sem conexão estável.\n\n✓ Checklist salvo no dispositivo.\nSincronização automática quando houver internet.');
+        await atualizarContadorPendencias();
+      }
+    } else {
+      // Offline: salva localmente
+      await saveOffline(payload);
+      salvouComSucesso = true;
+      alert('📱 Modo Offline\n\n✓ Checklist salvo no dispositivo.\nSincronizará automaticamente quando houver conexão.');
+      await atualizarContadorPendencias();
+    }
+
+    // Só limpa formulário se salvou com sucesso
+    if (salvouComSucesso) {
+      // Resetar formulário
+      this.reset();
+      removerFoto({ stopPropagation: () => {} });
+
+      document.querySelectorAll('.check-item input[type="checkbox"]').forEach(chk => {
+        chk.checked = true;
+      });
+
+      atualizarItensProblema();
+    }
+
+  } catch (error) {
+    debugLog('Erro ao salvar checklist:', error);
+    hideLoading();
+    alert('❌ Erro inesperado ao salvar.\n\nTente novamente. Se o erro persistir, reinicie o aplicativo.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Salvar checklist';
+  }
+});
+
+// ==================== EVENTOS DE REDE ====================
+window.addEventListener('online', async function() {
+  debugLog('Conexão restaurada');
+  statusOnline();
+  await sincronizar({ silencioso: true });
+});
+
+window.addEventListener('offline', function() {
+  debugLog('Conexão perdida');
+  statusOnline();
+});
+
+// ==================== SERVICE WORKER ====================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js')
+    .then(reg => debugLog('Service Worker registrado:', reg.scope))
+    .catch(err => debugLog('Erro SW:', err));
+}
+
+// ==================== INICIALIZAÇÃO ====================
+function statusOnline() {
+  const el = document.getElementById('netStatus');
+  const info = document.getElementById('deviceInfo');
+
+  if (navigator.onLine) {
+    el.innerHTML = 'Online';
+    el.className = 'status online';
+  } else {
+    el.innerHTML = 'Offline';
+    el.className = 'status offline';
+  }
+
+  info.innerHTML = `
+    Dispositivo: ${generateDeviceId()}<br>
+    App: Checklist Veicular CMW v2.0
+  `;
+}
+
+// ==================== DEBUG PANEL ====================
+document.getElementById('debugToggle').addEventListener('click', async function() {
+  const panel = document.getElementById('debugPanel');
+  panel.classList.toggle('visible');
+
+  if (panel.classList.contains('visible')) {
+    panel.textContent = '--- DEBUG LOG ---\n';
+    const sessao = await getSessao();
+    debugLog('Sessão atual:', sessao);
+    const pendentes = await listarPendentes();
+    debugLog('Pendentes count:', pendentes.length);
+    debugLog('Device ID:', generateDeviceId());
+  }
+});
+
+// ==================== EVENT LISTENERS ====================
+document.querySelectorAll('.check-item input[type="checkbox"]').forEach(chk => {
+  chk.addEventListener('change', atualizarItensProblema);
+});
+
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const matricula = document.getElementById('matricula').value.trim();
+  const pin = document.getElementById('pin').value.trim();
+
+  if (!matricula || !pin) {
+    showError('pinError', 'Preencha todos os campos');
+    return;
+  }
+
+  await login(matricula, pin);
+});
+
+// ==================== BOOTSTRAP ====================
+document.addEventListener('DOMContentLoaded', async function() {
+  debugLog('=== CMW Checklist v2.0 Inicializando ===');
+  statusOnline();
+  document.getElementById('btnSync').addEventListener('click', () => sincronizar());
+  await verificarSessao();
+});
+
+</script>
+
+</body>
+</html>

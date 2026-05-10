@@ -1,0 +1,1364 @@
+{
+  "name": "CMW - Checklist Veicular PWA Offline + Directus PIN",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "checklist-validar-dispositivo",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "59df2165-3234-4455-8fe7-8c0ae94643ca",
+      "name": "Webhook - Validar Dispositivo",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        2576,
+        2928
+      ],
+      "webhookId": "checklist-validar-dispositivo"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\n\nconst TOKEN_APP = 'cmw_chk_2026_9Kf3XwP2mQa8LdR7VnT4HsYc';\n\nconst tabletsAutorizados = [\n  {\n    device_id: 'TABLET-OPERACAO-01',\n    nome_dispositivo: 'Tablet Operação 01',\n    unidade: 'Extrema',\n    status: 'ativo',\n    validade_offline_dias: 30\n  },\n  {\n    device_id: 'TABLET-OPERACAO-02',\n    nome_dispositivo: 'Tablet Operação 02',\n    unidade: 'Bragança',\n    status: 'ativo',\n    validade_offline_dias: 30\n  },\n  {\n    device_id: 'DEVICE-7ebf93be-3a63-4ce0-ba52-7b5f4dd80a01',\n    nome_dispositivo: 'Mac João - Teste',\n    unidade: 'Extrema',\n    status: 'ativo',\n    validade_offline_dias: 30\n  }\n];\n\nconst tokenRecebido = body.token_app;\nconst deviceId = body.device_id;\n\nif (!tokenRecebido || tokenRecebido !== TOKEN_APP) {\n  return [{\n    json: {\n      autorizado: false,\n      status_code: 401,\n      erro: 'Token do aplicativo inválido.'\n    }\n  }];\n}\n\nif (!deviceId) {\n  return [{\n    json: {\n      autorizado: false,\n      status_code: 400,\n      erro: 'device_id não informado.'\n    }\n  }];\n}\n\nconst tablet = tabletsAutorizados.find(t =>\n  t.device_id === deviceId &&\n  t.status === 'ativo'\n);\n\nif (!tablet) {\n  return [{\n    json: {\n      autorizado: false,\n      status_code: 403,\n      erro: 'Dispositivo não autorizado.',\n      device_id: deviceId,\n      mensagem: 'Solicite ao gestor a liberação deste tablet.'\n    }\n  }];\n}\n\nconst agora = new Date();\nconst validoAte = new Date(agora);\n\nvalidoAte.setDate(\n  validoAte.getDate() + tablet.validade_offline_dias\n);\n\nreturn [{\n  json: {\n    autorizado: true,\n    status_code: 200,\n    device_id: tablet.device_id,\n    nome_dispositivo: tablet.nome_dispositivo,\n    unidade: tablet.unidade,\n    status: tablet.status,\n    validado_em: agora.toISOString(),\n    valido_offline_ate: validoAte.toISOString(),\n    validade_offline_dias: tablet.validade_offline_dias\n  }\n}];"
+      },
+      "id": "7e4823b3-8f80-48ff-9fcc-30b5e4363b80",
+      "name": "Validar Dispositivo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2816,
+        2928
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.status_code || 200 }}"
+        }
+      },
+      "id": "21ebe932-4b0c-4b62-949f-d046858c12f3",
+      "name": "Responder Validação",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3056,
+        2928
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "checklist-veicular",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1d9af9d6-9160-452b-a3a7-0713f91999a2",
+      "name": "Webhook - Checklist Veicular",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        2576,
+        3312
+      ],
+      "webhookId": "checklist-veicular"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\n\nconst TOKEN_APP = 'cmw_chk_2026_9Kf3XwP2mQa8LdR7VnT4HsYc';\n\nconst tabletsAutorizados = [\n  {\n    device_id: 'TABLET-OPERACAO-01',\n    nome_dispositivo: 'Tablet Operação 01',\n    unidade: 'Extrema',\n    status: 'ativo'\n  },\n  {\n    device_id: 'TABLET-OPERACAO-02',\n    nome_dispositivo: 'Tablet Operação 02',\n    unidade: 'Bragança',\n    status: 'ativo'\n  },\n  {\n    device_id: 'DEVICE-7ebf93be-3a63-4ce0-ba52-7b5f4dd80a01',\n    nome_dispositivo: 'Mac João - Teste',\n    unidade: 'Livre',\n    status: 'ativo'\n  }\n];\n\nconst erros = [];\nconst protocoloLocal = body.protocolo_local || `LEGADO-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;\n\nif (!body.token_app || body.token_app !== TOKEN_APP) {\n  erros.push('Token do aplicativo inválido.');\n}\n\nif (!body.device_id) {\n  erros.push('device_id obrigatório.');\n}\n\nif (!body.motorista_id) {\n  erros.push('motorista_id obrigatório.');\n}\n\nif (!body.motorista_matricula) {\n  erros.push('motorista_matricula obrigatório.');\n}\n\nif (!body.motorista_nome) {\n  erros.push('motorista_nome obrigatório.');\n}\n\nif (!body.tipo_veiculo) {\n  erros.push('tipo_veiculo obrigatório.');\n}\n\nif (!body.unidade) {\n  erros.push('unidade obrigatória.');\n}\n\nif (!body.prefixo) {\n  erros.push('prefixo obrigatório.');\n}\n\nif (!body.placa) {\n  erros.push('placa obrigatória.');\n}\n\nif (!body.km) {\n  erros.push('km obrigatório.');\n}\n\nif (!body.condutor_nome) {\n  erros.push('condutor_nome obrigatório.');\n}\n\nconst exigeDispositivoAutorizado = body.exige_dispositivo_autorizado === true || body.tipo_acesso === 'garagem';\nconst tablet = tabletsAutorizados.find(t =>\n  t.device_id === body.device_id &&\n  t.status === 'ativo'\n) || null;\n\nif (exigeDispositivoAutorizado && !tablet) {\n  erros.push('Dispositivo não autorizado para este usuário de garagem.');\n}\n\nif (tablet && tablet.unidade !== 'Livre' && body.unidade && tablet.unidade !== body.unidade) {\n  erros.push(\n    `Unidade informada (${body.unidade}) diferente da unidade autorizada do tablet (${tablet.unidade}).`\n  );\n}\n\nconst camposCriticos = [\n  {\n    campo: 'cinto_motorista_ok',\n    descricao: 'Cinto do motorista com problema'\n  },\n  {\n    campo: 'cintos_passageiros_ok',\n    descricao: 'Cintos dos passageiros com problema'\n  },\n  {\n    campo: 'freio_ok',\n    descricao: 'Freio com problema'\n  },\n  {\n    campo: 'pneus_ok',\n    descricao: 'Pneus com problema'\n  },\n  {\n    campo: 'farol_lanterna_seta_ok',\n    descricao: 'Farol/lanterna/seta com problema'\n  },\n  {\n    campo: 'porta_ok',\n    descricao: 'Porta com problema'\n  },\n  {\n    campo: 'extintor_ok',\n    descricao: 'Extintor com problema'\n  },\n  {\n    campo: 'saida_emergencia_ok',\n    descricao: 'Saída de emergência com problema'\n  }\n];\n\nconst itensCriticos = [];\n\nfor (const item of camposCriticos) {\n  const valor = body[item.campo];\n\n  if (\n    valor === 'Não' ||\n    valor === false ||\n    valor === 'false' ||\n    valor === 'Ruim'\n  ) {\n    itensCriticos.push(item.descricao);\n  }\n}\n\nif (itensCriticos.length > 0 && !body.problema_cinto_detalhe && !body.observacoes) {\n  erros.push('Detalhe do problema ou observações é obrigatório quando houver item com problema.');\n}\n\nlet statusOperacional = 'Liberado';\nlet prioridade = 'Normal';\n\nif (itensCriticos.length > 0) {\n  statusOperacional = 'Restrição operacional';\n  prioridade = 'Crítica';\n}\n\nif (\n  body.cinto_motorista_ok === 'Não' ||\n  body.cintos_passageiros_ok === 'Não'\n) {\n  statusOperacional = 'Restrição operacional - cinto';\n  prioridade = 'Crítica';\n}\n\nif (erros.length > 0) {\n  return [{\n    json: {\n      aceito: false,\n      status_code: 400,\n      erros,\n      recebido_em: new Date().toISOString(),\n      device_id: body.device_id || null\n    }\n  }];\n}\n\nconst dataBase = new Date()\n  .toISOString()\n  .slice(0, 10)\n  .replace(/-/g, '');\n\nconst aleatorio = Math\n  .random()\n  .toString(36)\n  .substring(2, 7)\n  .toUpperCase();\n\nconst protocolo = `CHK-${dataBase}-${aleatorio}`;\n\nreturn [{\n  json: {\n    aceito: true,\n    status_code: 200,\n    protocolo,\n    prioridade,\n    status_operacional: statusOperacional,\n    itens_criticos: itensCriticos,\n    unidade_tablet: tablet?.unidade || body.unidade || 'Móvel',\n    nome_dispositivo: tablet?.nome_dispositivo || body.nome_dispositivo || 'Dispositivo móvel não cadastrado',\n    recebido_em: new Date().toISOString(),\n    registro: {\n      protocolo,\n      protocolo_local: protocoloLocal,\n      status_operacional: statusOperacional,\n      prioridade,\n      unidade: body.unidade,\n      unidade_tablet: tablet?.unidade || body.unidade || 'Móvel',\n      nome_dispositivo: tablet?.nome_dispositivo || body.nome_dispositivo || 'Dispositivo móvel não cadastrado',\n      device_id: body.device_id,\n      tipo_acesso: body.tipo_acesso || (exigeDispositivoAutorizado ? 'garagem' : 'movel'),\n      exige_dispositivo_autorizado: exigeDispositivoAutorizado,\n      motorista_id: body.motorista_id,\n      motorista_matricula: body.motorista_matricula,\n      motorista_nome: body.motorista_nome,\n      tipo_veiculo: body.tipo_veiculo,\n      prefixo: body.prefixo,\n      placa: body.placa,\n      km: body.km,\n      condutor_nome: body.condutor_nome,\n      cinto_motorista_ok: body.cinto_motorista_ok,\n      cintos_passageiros_ok: body.cintos_passageiros_ok,\n      problema_cinto_detalhe: body.problema_cinto_detalhe || '',\n      freio_ok: body.freio_ok,\n      pneus_ok: body.pneus_ok,\n      farol_lanterna_seta_ok: body.farol_lanterna_seta_ok,\n      porta_ok: body.porta_ok,\n      extintor_ok: body.extintor_ok,\n      saida_emergencia_ok: body.saida_emergencia_ok,\n      observacoes: body.observacoes || '',\n      criado_em_aparelho: body.criado_em_aparelho || '',\n      online_no_momento: body.online_no_momento || false,\n      origem: body.origem || 'pwa-checklist-cmw',\n      recebido_em: new Date().toISOString(),\n      itens_criticos: itensCriticos.join(', ')\n    },\n    checklist_original: body,\n    foto_base64: body.foto || null\n  }\n}];"
+      },
+      "id": "73ecde42-5196-4332-aee7-d2c5a5a51759",
+      "name": "Validar Checklist",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2816,
+        3312
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "condicaoAceito",
+              "leftValue": "={{ $json.aceito }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "36a3faeb-a4ed-4fa6-ae59-062a50a7eec4",
+      "name": "Checklist Válido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3056,
+        3312
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "protocolo",
+              "name": "protocolo",
+              "value": "={{ $json.registro.protocolo }}",
+              "type": "string"
+            },
+            {
+              "id": "protocolo_local",
+              "name": "protocolo_local",
+              "value": "={{ $json.registro.protocolo_local }}",
+              "type": "string"
+            },
+            {
+              "id": "status_operacional",
+              "name": "status_operacional",
+              "value": "={{ $json.registro.status_operacional }}",
+              "type": "string"
+            },
+            {
+              "id": "prioridade",
+              "name": "prioridade",
+              "value": "={{ $json.registro.prioridade }}",
+              "type": "string"
+            },
+            {
+              "id": "unidade",
+              "name": "unidade",
+              "value": "={{ $json.registro.unidade }}",
+              "type": "string"
+            },
+            {
+              "id": "prefixo",
+              "name": "prefixo",
+              "value": "={{ $json.registro.prefixo }}",
+              "type": "string"
+            },
+            {
+              "id": "placa",
+              "name": "placa",
+              "value": "={{ $json.registro.placa }}",
+              "type": "string"
+            },
+            {
+              "id": "tipo_veiculo",
+              "name": "tipo_veiculo",
+              "value": "={{ $json.registro.tipo_veiculo }}",
+              "type": "string"
+            },
+            {
+              "id": "km",
+              "name": "km",
+              "value": "={{ $json.registro.km }}",
+              "type": "string"
+            },
+            {
+              "id": "condutor_nome",
+              "name": "condutor_nome",
+              "value": "={{ $json.registro.condutor_nome }}",
+              "type": "string"
+            },
+            {
+              "id": "motorista_nome",
+              "name": "motorista_nome",
+              "value": "={{ $json.registro.motorista_nome }}",
+              "type": "string"
+            },
+            {
+              "id": "motorista_matricula",
+              "name": "motorista_matricula",
+              "value": "={{ $json.registro.motorista_matricula }}",
+              "type": "string"
+            },
+            {
+              "id": "motorista_id",
+              "name": "motorista_id",
+              "value": "={{ $json.registro.motorista_id }}",
+              "type": "string"
+            },
+            {
+              "id": "device_id",
+              "name": "device_id",
+              "value": "={{ $json.registro.device_id }}",
+              "type": "string"
+            },
+            {
+              "id": "nome_dispositivo",
+              "name": "nome_dispositivo",
+              "value": "={{ $json.registro.nome_dispositivo }}",
+              "type": "string"
+            },
+            {
+              "id": "itens_criticos",
+              "name": "itens_criticos",
+              "value": "={{ $json.registro.itens_criticos }}",
+              "type": "string"
+            },
+            {
+              "id": "problema_cinto_detalhe",
+              "name": "problema_cinto_detalhe",
+              "value": "={{ $json.registro.problema_cinto_detalhe }}",
+              "type": "string"
+            },
+            {
+              "id": "observacoes",
+              "name": "observacoes",
+              "value": "={{ $json.registro.observacoes }}",
+              "type": "string"
+            },
+            {
+              "id": "recebido_em",
+              "name": "recebido_em",
+              "value": "={{ $json.registro.recebido_em }}",
+              "type": "string"
+            },
+            {
+              "id": "foto_base64",
+              "name": "foto_base64",
+              "value": "={{ $json.foto_base64 }}",
+              "type": "string"
+            },
+            {
+              "id": "foto_url",
+              "name": "foto_url",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "foto_drive_id",
+              "name": "foto_drive_id",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "532d14e1-49dc-4eb0-8251-6f1f44be6687",
+      "name": "Preparar Registro",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3328,
+        3216
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "condicaoCritico",
+              "leftValue": "={{ $json.prioridade }}",
+              "rightValue": "Crítica",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b5a0298c-0076-4ad0-a728-b74fea0139d1",
+      "name": "É Crítico?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3584,
+        3216
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "titulo_ocorrencia",
+              "name": "titulo_ocorrencia",
+              "value": "=Checklist crítico - Veículo {{ $json.prefixo }}",
+              "type": "string"
+            },
+            {
+              "id": "descricao_ocorrencia",
+              "name": "descricao_ocorrencia",
+              "value": "=Protocolo: {{ $json.protocolo }}\nVeículo: {{ $json.prefixo }} - {{ $json.placa }}\nTipo: {{ $json.tipo_veiculo }}\nUnidade: {{ $json.unidade }}\nMotorista: {{ $json.motorista_nome }} - Matrícula {{ $json.motorista_matricula }}\nStatus: {{ $json.status_operacional }}\nItens críticos: {{ $json.itens_criticos }}\nProblema no cinto: {{ $json.problema_cinto_detalhe }}\nObservações: {{ $json.observacoes }}\nTablet: {{ $json.nome_dispositivo }}\nDevice ID: {{ $json.device_id }}\nRecebido em: {{ $json.recebido_em }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "407beaf1-e170-4f09-9259-9f0dadaa56ac",
+      "name": "Preparar Ocorrência Crítica",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3840,
+        3120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { aceito: true, protocolo: $('Validar Checklist').item.json.protocolo, status_operacional: $('Validar Checklist').item.json.status_operacional, prioridade: $('Validar Checklist').item.json.prioridade, itens_criticos: $('Validar Checklist').item.json.itens_criticos, mensagem: 'Checklist recebido com sucesso.' } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "bddec499-5de7-42f5-a914-991ca47a7cf7",
+      "name": "Responder OK - Crítico",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        4096,
+        3120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { aceito: true, protocolo: $('Validar Checklist').item.json.protocolo, status_operacional: $('Validar Checklist').item.json.status_operacional, prioridade: $('Validar Checklist').item.json.prioridade, itens_criticos: $('Validar Checklist').item.json.itens_criticos, mensagem: 'Checklist recebido com sucesso.' } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "178a4765-a649-4dbd-af8e-ff4ccdd7b6e0",
+      "name": "Responder OK - Normal",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3840,
+        3328
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.status_code || 400 }}"
+        }
+      },
+      "id": "ad541d7a-2427-43ea-8f8b-6f4ecac0a8fb",
+      "name": "Responder Erro",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3328,
+        3456
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "checklist-validar-motorista",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cda7f471-7de0-4942-b9c2-22823cd035da",
+      "name": "Webhook - Validar Motorista",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        2576,
+        2544
+      ],
+      "webhookId": "checklist-validar-motorista"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\n\nconst TOKEN_APP = 'cmw_chk_2026_9Kf3XwP2mQa8LdR7VnT4HsYc';\n\nconst erros = [];\n\nif (!body.token_app || body.token_app !== TOKEN_APP) {\n  erros.push('Token do aplicativo inválido.');\n}\n\nif (!body.matricula) {\n  erros.push('Matrícula obrigatória.');\n}\n\nif (!body.pin) {\n  erros.push('PIN obrigatório.');\n}\n\nif (!body.device_id) {\n  erros.push('device_id obrigatório.');\n}\n\nif (erros.length > 0) {\n  return [{\n    json: {\n      autorizado: false,\n      parar_fluxo: true,\n      status_code: 400,\n      erros\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    autorizado: null,\n    parar_fluxo: false,\n    token_app: body.token_app,\n    matricula: String(body.matricula).trim(),\n    pin: String(body.pin).trim(),\n    device_id: body.device_id\n  }\n}];"
+      },
+      "id": "059f76f7-b3a1-46a2-9b84-cbc57593c6aa",
+      "name": "Preparar Validação Motorista",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2816,
+        2544
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "condicaoPararFluxo",
+              "leftValue": "={{ $json.parar_fluxo }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d66bef15-e85b-4a51-b132-9dbde7216b3b",
+      "name": "Erro inicial motorista?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3056,
+        2544
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.status_code || 400 }}"
+        }
+      },
+      "id": "4d19b0c8-8d15-4325-a0d1-b78729a630cf",
+      "name": "Responder Erro Motorista Inicial",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3328,
+        2448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAllRaw",
+        "collection": "motoristas_checklist",
+        "queryParameters": "={{ JSON.stringify({ fields: ['id','matricula','nome','pin_hash','unidade','status','validade_offline_dias','tipo_acesso','exige_dispositivo_autorizado'], filter: { matricula: { _eq: $('Preparar Validação Motorista').item.json.matricula } }, limit: 1 }) }}"
+      },
+      "id": "7a674468-9b8b-4c19-8dc3-ff9e159e15a2",
+      "name": "Buscar Motorista Directus",
+      "type": "@directus/n8n-nodes-directus.directus",
+      "typeVersion": 1,
+      "position": [
+        3328,
+        2640
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "directusApi": {
+          "id": "zfo04SYCyMSNDiDT",
+          "name": "Directus account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\nconst input = $('Preparar Validação Motorista').first().json;\n\n\nconst dispositivosAutorizados = [\n  { device_id: 'TABLET-OPERACAO-01', nome_dispositivo: 'Tablet Operação 01', unidade: 'Extrema', status: 'ativo' },\n  { device_id: 'TABLET-OPERACAO-02', nome_dispositivo: 'Tablet Operação 02', unidade: 'Bragança', status: 'ativo' },\n  { device_id: 'DEVICE-7ebf93be-3a63-4ce0-ba52-7b5f4dd80a01', nome_dispositivo: 'Mac João - Teste', unidade: 'Livre', status: 'ativo' }\n];\n\n// O node Directus com Get Many Raw retorna 1 item por item encontrado.\n// Com alwaysOutputData=true, se não encontrar pode retornar objeto vazio.\nconst motorista = $json && $json.id ? $json : null;\n\nif (!motorista) {\n  return [{\n    json: {\n      autorizado: false,\n      status_code: 404,\n      erro: 'Motorista não encontrado.'\n    }\n  }];\n}\n\nif (motorista.status !== 'ativo') {\n  return [{\n    json: {\n      autorizado: false,\n      status_code: 403,\n      erro: 'Motorista inativo.'\n    }\n  }];\n}\n\nconst PIN_PEPPER = 'cmw_pin_pepper_2026';\nconst base = `${input.matricula}:${input.pin}:${PIN_PEPPER}`;\n\nconst pinHashCalculado = crypto\n  .createHash('sha256')\n  .update(base)\n  .digest('hex');\n\nif (pinHashCalculado !== motorista.pin_hash) {\n  return [{\n    json: {\n      autorizado: false,\n      status_code: 403,\n      erro: 'PIN inválido.'\n    }\n  }];\n}\n\nconst exigeDispositivoAutorizado = motorista.exige_dispositivo_autorizado === true || motorista.tipo_acesso === 'garagem';\nconst dispositivo = dispositivosAutorizados.find(d => d.device_id === input.device_id && d.status === 'ativo') || null;\n\nif (exigeDispositivoAutorizado && !dispositivo) {\n  return [{\n    json: {\n      autorizado: false,\n      status_code: 403,\n      erro: 'Este usuário exige dispositivo autorizado. Use o aparelho da garagem ou solicite liberação ao gestor.',\n      device_id: input.device_id\n    }\n  }];\n}\n\nconst agora = new Date();\nconst validoAte = new Date(agora);\nconst validadeDias = motorista.validade_offline_dias || 30;\n\nvalidoAte.setDate(validoAte.getDate() + validadeDias);\n\nreturn [{\n  json: {\n    autorizado: true,\n    status_code: 200,\n    motorista_id: motorista.id,\n    motorista_matricula: motorista.matricula,\n    motorista_nome: motorista.nome,\n    unidade: dispositivo?.unidade || motorista.unidade,\n    status: motorista.status,\n    tipo_acesso: motorista.tipo_acesso || (exigeDispositivoAutorizado ? 'garagem' : 'movel'),\n    exige_dispositivo_autorizado: exigeDispositivoAutorizado,\n    dispositivo_autorizado: !!dispositivo,\n    nome_dispositivo: dispositivo?.nome_dispositivo || 'Dispositivo móvel não cadastrado',\n    validado_em: agora.toISOString(),\n    valido_offline_ate: validoAte.toISOString(),\n    validade_offline_dias: validadeDias\n  }\n}];"
+      },
+      "id": "1ccbee4d-c2e1-4568-ae7e-9bc99b6cc7f0",
+      "name": "Validar Motorista PIN Hash",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3584,
+        2640
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.status_code || 200 }}"
+        }
+      },
+      "id": "86653c40-fd37-4614-b705-8bb8a112129a",
+      "name": "Responder Validação Motorista",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3840,
+        2640
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "createRaw",
+        "collection": "checklists_veiculares",
+        "jsonData": "={{ JSON.stringify($json) }}"
+      },
+      "id": "ae41890b-febf-4a57-8421-3861fa49a5b3",
+      "name": "Salvar Checklist Directus",
+      "type": "@directus/n8n-nodes-directus.directus",
+      "typeVersion": 1,
+      "position": [
+        3584,
+        3216
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = { ...$json };\ndelete data.foto_base64;\nreturn [{ json: data }];"
+      },
+      "id": "aa000001-0001-0001-0001-000000000001",
+      "name": "Remover Foto Do Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3840,
+        3216
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "condicaoTemFoto",
+              "leftValue": "={{ $('Preparar Registro').item.json.foto_base64 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "aa000002-0002-0002-0002-000000000002",
+      "name": "Tem Foto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        4096,
+        3216
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const foto = $('Preparar Registro').item.json.foto_base64;\nconst protocolo = $('Preparar Registro').item.json.protocolo || 'checklist';\nconst base64 = foto.replace(/^data:image\\/\\w+;base64,/, '');\nconst buffer = Buffer.from(base64, 'base64');\nreturn [{\n  json: { protocolo, directus_id: $json.id },\n  binary: {\n    foto: await this.helpers.prepareBinaryData(\n      buffer,\n      `${protocolo}_${Date.now()}.jpg`,\n      'image/jpeg'\n    )\n  }\n}];"
+      },
+      "id": "aa000003-0003-0003-0003-000000000003",
+      "name": "Converter Foto Para Binario",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4352,
+        3120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "name": "={{ $json.protocolo + '_' + $now.toMillis() + '.jpg' }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "root",
+          "mode": "list",
+          "cachedResultName": "/"
+        },
+        "binaryPropertyName": "foto",
+        "options": {
+          "simplifyOutput": true
+        }
+      },
+      "id": "aa000004-0004-0004-0004-000000000004",
+      "name": "Upload Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        4608,
+        3120
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "CONFIGURE_GOOGLE_DRIVE_CREDENTIAL",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "updateRaw",
+        "collection": "checklists_veiculares",
+        "id": "={{ $('Salvar Checklist Directus').item.json.id }}",
+        "jsonData": "={{ JSON.stringify({ foto_drive_id: $json.id, foto_url: 'https://drive.google.com/file/d/' + $json.id + '/view' }) }}"
+      },
+      "id": "aa000005-0005-0005-0005-000000000005",
+      "name": "Salvar Link Foto Directus",
+      "type": "@directus/n8n-nodes-directus.directus",
+      "typeVersion": 1,
+      "position": [
+        4864,
+        3120
+      ],
+      "continueOnFail": true,
+      "credentials": {
+        "directusApi": {
+          "id": "zfo04SYCyMSNDiDT",
+          "name": "Directus account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAllRaw",
+        "collection": "checklists_veiculares",
+        "queryParameters": "={{ JSON.stringify({ fields: ['id','protocolo','protocolo_local','status_operacional','prioridade'], filter: { protocolo_local: { _eq: $('Validar Checklist').item.json.registro.protocolo_local } }, limit: 1 }) }}"
+      },
+      "id": "5c7e4a31-e9a0-48a7-9e0c-a45958fc5030",
+      "name": "Buscar Checklist Existente",
+      "type": "@directus/n8n-nodes-directus.directus",
+      "typeVersion": 1,
+      "position": [
+        3280,
+        3312
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "directusApi": {
+          "id": "zfo04SYCyMSNDiDT",
+          "name": "Directus account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "duplicado",
+              "leftValue": "={{ $json.id || $json[0]?.id || $json.data?.[0]?.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "59f03d66-86b2-4655-9906-ad22ef2028d4",
+      "name": "Checklist Já Existe?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        3520,
+        3312
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { aceito: true, duplicado: true, protocolo: $json.protocolo || $json[0]?.protocolo || $json.data?.[0]?.protocolo || $('Validar Checklist').item.json.protocolo, protocolo_local: $('Validar Checklist').item.json.registro.protocolo_local, status_operacional: $json.status_operacional || $json[0]?.status_operacional || $json.data?.[0]?.status_operacional || $('Validar Checklist').item.json.status_operacional, prioridade: $json.prioridade || $json[0]?.prioridade || $json.data?.[0]?.prioridade || $('Validar Checklist').item.json.prioridade, mensagem: 'Checklist já recebido anteriormente. Nenhum registro duplicado foi criado.' } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "61e93bdd-2c2c-4cff-ab11-d60453eb8a81",
+      "name": "Responder OK - Duplicado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        3760,
+        3216
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "COLE_AQUI_ID_DA_PLANILHA",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Checklists",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Recebido em": "={{ $('Preparar Registro').item.json.recebido_em }}",
+            "Protocolo": "={{ $('Preparar Registro').item.json.protocolo }}",
+            "Protocolo Local": "={{ $('Preparar Registro').item.json.protocolo_local }}",
+            "Duplicado": "Não",
+            "Status Operacional": "={{ $('Preparar Registro').item.json.status_operacional }}",
+            "Prioridade": "={{ $('Preparar Registro').item.json.prioridade }}",
+            "Unidade": "={{ $('Preparar Registro').item.json.unidade }}",
+            "Tipo Acesso": "={{ $('Preparar Registro').item.json.tipo_acesso }}",
+            "Dispositivo": "={{ $('Preparar Registro').item.json.nome_dispositivo }}",
+            "Device ID": "={{ $('Preparar Registro').item.json.device_id }}",
+            "Motorista Matrícula": "={{ $('Preparar Registro').item.json.motorista_matricula }}",
+            "Motorista Nome": "={{ $('Preparar Registro').item.json.motorista_nome }}",
+            "Tipo Veículo": "={{ $('Preparar Registro').item.json.tipo_veiculo }}",
+            "Prefixo": "={{ $('Preparar Registro').item.json.prefixo }}",
+            "Placa": "={{ $('Preparar Registro').item.json.placa }}",
+            "KM": "={{ $('Preparar Registro').item.json.km }}",
+            "Condutor": "={{ $('Preparar Registro').item.json.condutor_nome }}",
+            "Cinto Motorista": "={{ $('Preparar Registro').item.json.cinto_motorista_ok }}",
+            "Cintos Passageiros": "={{ $('Preparar Registro').item.json.cintos_passageiros_ok }}",
+            "Freio": "={{ $('Preparar Registro').item.json.freio_ok }}",
+            "Pneus": "={{ $('Preparar Registro').item.json.pneus_ok }}",
+            "Farol/Lanterna/Seta": "={{ $('Preparar Registro').item.json.farol_lanterna_seta_ok }}",
+            "Porta": "={{ $('Preparar Registro').item.json.porta_ok }}",
+            "Extintor": "={{ $('Preparar Registro').item.json.extintor_ok }}",
+            "Saída Emergência": "={{ $('Preparar Registro').item.json.saida_emergencia_ok }}",
+            "Itens Críticos": "={{ $('Preparar Registro').item.json.itens_criticos }}",
+            "Observações": "={{ $('Preparar Registro').item.json.observacoes }}",
+            "Foto URL": "={{ $json.foto_url || '' }}",
+            "Foto Drive ID": "={{ $json.foto_drive_id || '' }}",
+            "Directus ID": "={{ $('Salvar Checklist Directus').item.json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Recebido em",
+              "displayName": "Recebido em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Protocolo",
+              "displayName": "Protocolo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Protocolo Local",
+              "displayName": "Protocolo Local",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Duplicado",
+              "displayName": "Duplicado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status Operacional",
+              "displayName": "Status Operacional",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Prioridade",
+              "displayName": "Prioridade",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Unidade",
+              "displayName": "Unidade",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo Acesso",
+              "displayName": "Tipo Acesso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Dispositivo",
+              "displayName": "Dispositivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Device ID",
+              "displayName": "Device ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Motorista Matrícula",
+              "displayName": "Motorista Matrícula",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Motorista Nome",
+              "displayName": "Motorista Nome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo Veículo",
+              "displayName": "Tipo Veículo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Prefixo",
+              "displayName": "Prefixo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Placa",
+              "displayName": "Placa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "KM",
+              "displayName": "KM",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Condutor",
+              "displayName": "Condutor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Cinto Motorista",
+              "displayName": "Cinto Motorista",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Cintos Passageiros",
+              "displayName": "Cintos Passageiros",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Freio",
+              "displayName": "Freio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pneus",
+              "displayName": "Pneus",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Farol/Lanterna/Seta",
+              "displayName": "Farol/Lanterna/Seta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Porta",
+              "displayName": "Porta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Extintor",
+              "displayName": "Extintor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Saída Emergência",
+              "displayName": "Saída Emergência",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Itens Críticos",
+              "displayName": "Itens Críticos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Observações",
+              "displayName": "Observações",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Foto URL",
+              "displayName": "Foto URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Foto Drive ID",
+              "displayName": "Foto Drive ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Directus ID",
+              "displayName": "Directus ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "6446c758-af10-4ca0-a4c8-70fef4a04373",
+      "name": "Adicionar Linha Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        5488,
+        3360
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "CONFIGURE_GOOGLE_SHEETS_CREDENTIAL",
+          "name": "Google Sheets account"
+        }
+      },
+      "continueOnFail": true,
+      "notesInFlow": true,
+      "notes": "Configure o ID da planilha e uma aba chamada Checklists. Este nó é redundância: se falhar, não deve impedir o Directus."
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Validar Dispositivo": {
+      "main": [
+        [
+          {
+            "node": "Validar Dispositivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Dispositivo": {
+      "main": [
+        [
+          {
+            "node": "Responder Validação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Checklist Veicular": {
+      "main": [
+        [
+          {
+            "node": "Validar Checklist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Checklist": {
+      "main": [
+        [
+          {
+            "node": "Checklist Válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Checklist Válido?": {
+      "main": [
+        [
+          {
+            "node": "Buscar Checklist Existente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Registro": {
+      "main": [
+        [
+          {
+            "node": "É Crítico?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É Crítico?": {
+      "main": [
+        [
+          {
+            "node": "Preparar Ocorrência Crítica",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder OK - Normal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Ocorrência Crítica": {
+      "main": [
+        [
+          {
+            "node": "Responder OK - Crítico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Validar Motorista": {
+      "main": [
+        [
+          {
+            "node": "Preparar Validação Motorista",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Validação Motorista": {
+      "main": [
+        [
+          {
+            "node": "Erro inicial motorista?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Erro inicial motorista?": {
+      "main": [
+        [
+          {
+            "node": "Responder Erro Motorista Inicial",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Motorista Directus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Motorista Directus": {
+      "main": [
+        [
+          {
+            "node": "Validar Motorista PIN Hash",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Motorista PIN Hash": {
+      "main": [
+        [
+          {
+            "node": "Responder Validação Motorista",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remover Foto Do Payload": {
+      "main": [
+        [
+          {
+            "node": "Salvar Checklist Directus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Checklist Directus": {
+      "main": [
+        [
+          {
+            "node": "Tem Foto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Foto?": {
+      "main": [
+        [
+          {
+            "node": "Converter Foto Para Binario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Adicionar Linha Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Converter Foto Para Binario": {
+      "main": [
+        [
+          {
+            "node": "Upload Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Salvar Link Foto Directus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder OK - Crítico": {
+      "main": [
+        [
+          {
+            "node": "Remover Foto Do Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder OK - Normal": {
+      "main": [
+        [
+          {
+            "node": "Remover Foto Do Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Checklist Existente": {
+      "main": [
+        [
+          {
+            "node": "Checklist Já Existe?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Checklist Já Existe?": {
+      "main": [
+        [
+          {
+            "node": "Responder OK - Duplicado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar Registro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Link Foto Directus": {
+      "main": [
+        [
+          {
+            "node": "Adicionar Linha Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f48ea8d2-6cb0-4e05-9839-18f0b2faa0fe",
+  "meta": {
+    "instanceId": "d892e9f44757bbb9e657c7532c2d974e2632da614f9950c80bba9bfd36214bb2"
+  },
+  "id": "EAl5NC8d8a3yVPby",
+  "tags": []
+}

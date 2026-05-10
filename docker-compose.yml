@@ -1,0 +1,21 @@
+services:
+  checklist-offline:
+    build: .
+    image: checklist-offline:latest
+    container_name: checklist-offline
+    restart: unless-stopped
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.checklist-offline.rule=Host(`${CHECKLIST_DOMAIN}`)"
+      - "traefik.http.routers.checklist-offline.entrypoints=websecure"
+      - "traefik.http.routers.checklist-offline.tls=true"
+      - "traefik.http.routers.checklist-offline.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.checklist-offline.middlewares=global-headers@docker"
+      - "traefik.http.services.checklist-offline.loadbalancer.server.port=80"
+
+networks:
+  web:
+    external: true

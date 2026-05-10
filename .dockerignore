@@ -1,0 +1,11 @@
+.git
+.gitignore
+.DS_Store
+README*.md
+BEST_PRACTICES.md
+MELHORIAS_APLICADAS.md
+n8n-improvements.md
+create-directus-schema.js
+scratch.py
+*.json
+!manifest.json

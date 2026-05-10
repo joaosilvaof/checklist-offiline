@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <title>CMW Transportes - Acesso Integrado</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root {
+      --azul: #0d2257; --vermelho: #c8181e; --vermelho-hover: #a81318;
+      --cinza-bg: #f4f6fb; --cinza-borda: #dde3f0; --cinza-texto: #5a6480;
+      --fonte-padrao: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body {
+      font-family: var(--fonte-padrao);
+      background-color: #ffffff;
+      color: var(--azul);
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .top-bar {
+      width: 100%;
+      background-color: var(--azul);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .top-bar img { max-height: 40px; display: block; }
+    .main-content {
+      padding: 40px 16px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .card {
+      width: 100%;
+      max-width: 380px; 
+      border: 1.5px solid var(--cinza-borda);
+      border-radius: 12px;
+      padding: 28px 24px;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--azul);
+      margin: 0 0 20px 0;
+      letter-spacing: -0.5px;
+    }
+    .field { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--azul);
+      margin-bottom: 6px;
+    }
+    input[type=email] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--cinza-borda);
+      border-radius: 8px;
+      font-family: var(--fonte-padrao);
+      font-size: 15px;
+      color: var(--azul);
+      background: var(--cinza-bg);
+      transition: all 0.2s;
+      outline: none;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background: var(--vermelho);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--fonte-padrao);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--vermelho-hover); }
+    .cf-turnstile { display: flex; justify-content: center; margin-top: 12px; min-height: 65px; }
+  </style>
+</head>
+<body>
+<div class="top-bar"><img src="https://static.wixstatic.com/media/a3f80f_20de4807aaad498983ad218c6c56bdd1~mv2.png/v1/fill/w_128,h_44,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/LOGO%202.png"></div>
+<div class="main-content">
+  <div class="card">
+    <h1>Acesso Integrado</h1>
+    <form id="frm" method="POST" action="https://api.cmwtransportes.org/webhook/portal-validar">
+      <div class="field">
+        <label>E-mail Corporativo ou Cadastrado</label>
+        <input type="email" name="email" placeholder="seu@email.com.br" required autocomplete="email">
+      </div>
+      <div class="field"><div class="cf-turnstile" data-sitekey="0x4AAAAAAC_bYE-Ho1yc8ukw"></div></div>
+      <button type="submit" class="btn-submit" id="btn">Continuar</button>
+    </form>
+  </div>
+</div>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</body>
+</html>
