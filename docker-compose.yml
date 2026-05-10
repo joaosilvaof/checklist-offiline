@@ -3,7 +3,7 @@ services:
     build: .
     image: checklist-offline:latest
     container_name: checklist-offline
-    restart: "no"
+    restart: unless-stopped
     environment:
       API_BASE: ${API_BASE}
       TOKEN_APP: ${TOKEN_APP}
