@@ -637,14 +637,14 @@
 
 </div>
 
+<script src="./config.js"></script>
 <script>
 
 // ==================== CONFIGURAÇÕES ====================
 const CONFIG = {
-  // Produção n8n: informe a URL base dos webhooks, ex.: 'https://n8n.seudominio.com/webhook'
-  // Se houver proxy no mesmo domínio do PWA, mantenha window.location.origin.
-  API_BASE: localStorage.getItem('cmw_api_base') || window.location.origin,
-  TOKEN_APP: 'cmw_chk_2026_9Kf3XwP2mQa8LdR7VnT4HsYc',
+  // Valores sensíveis/ambiente vêm de config.js, gerado pelo Docker a partir das variáveis de ambiente.
+  API_BASE: localStorage.getItem('cmw_api_base') || window.APP_CONFIG?.API_BASE || window.location.origin,
+  TOKEN_APP: window.APP_CONFIG?.TOKEN_APP || '',
   DB_NAME: 'cmw_checklist_v2',
   STORE_PENDENTES: 'pendentes',
   STORE_SESSAO: 'sessao',
@@ -654,7 +654,7 @@ const CONFIG = {
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
   BATCH_SIZE: 3, // Menor para conexões instáveis e uploads com foto
   RETER_ENVIADOS_DIAS: 15,
-  DEBUG: false // Ative temporariamente pelo painel/debug se necessário
+  DEBUG: Boolean(window.APP_CONFIG?.DEBUG) // Ative temporariamente pelo painel/debug se necessário
 };
 
 // ==================== LOGS ====================

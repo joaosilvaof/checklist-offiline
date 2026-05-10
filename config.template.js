@@ -1,0 +1,5 @@
+window.APP_CONFIG = {
+  API_BASE: "${API_BASE}",
+  TOKEN_APP: "${TOKEN_APP}",
+  DEBUG: ${APP_DEBUG}
+};
